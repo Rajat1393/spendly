@@ -56,7 +56,7 @@ def login():
 
         session["user_id"] = user["id"]
         session["user_name"] = user["name"]
-        return redirect(url_for("profile"))
+        return redirect(url_for("landing"))
 
     return render_template("login.html")
 
