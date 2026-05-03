@@ -21,6 +21,37 @@
             </div>
         </div>
 
+        <!-- Date filter bar -->
+        <div class="filter-bar">
+            <div class="filter-presets">
+                <a href="{{ url_for('profile') }}"
+                   class="btn-filter{% if not date_from and not date_to %} active{% endif %}">
+                    All Time
+                </a>
+                <a href="{{ url_for('profile', date_from=first_of_month, date_to=today_str) }}"
+                   class="btn-filter{% if date_from == first_of_month and date_to == today_str %} active{% endif %}">
+                    This Month
+                </a>
+                <a href="{{ url_for('profile', date_from=three_months_start, date_to=today_str) }}"
+                   class="btn-filter{% if date_from == three_months_start and date_to == today_str %} active{% endif %}">
+                    Last 3 Months
+                </a>
+                <a href="{{ url_for('profile', date_from=six_months_start, date_to=today_str) }}"
+                   class="btn-filter{% if date_from == six_months_start and date_to == today_str %} active{% endif %}">
+                    Last 6 Months
+                </a>
+            </div>
+            <form class="filter-custom" method="get" action="{{ url_for('profile') }}">
+                <label for="date_from">From</label>
+                <input type="date" id="date_from" name="date_from"
+                       value="{{ date_from or '' }}" max="{{ today_str }}">
+                <label for="date_to">To</label>
+                <input type="date" id="date_to" name="date_to"
+                       value="{{ date_to or '' }}" max="{{ today_str }}">
+                <button type="submit" class="btn-filter">Apply</button>
+            </form>
+        </div>
+
         <!-- Summary stats -->
         <div class="profile-stats">
             <div class="profile-stat-card">
