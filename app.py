@@ -1,8 +1,20 @@
 import os
 import sqlite3
+from datetime import datetime
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
-from database.db import create_user, get_db, get_user_by_email, init_db, seed_db
+from database.db import (
+    create_user,
+    get_category_totals,
+    get_db,
+    get_expense_stats,
+    get_recent_expenses,
+    get_top_category,
+    get_user_by_email,
+    get_user_by_id,
+    init_db,
+    seed_db,
+)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
@@ -86,33 +98,55 @@ def profile():
     if not session.get("user_id"):
         return redirect(url_for("login"))
 
-    name = session["user_name"]
+    user_row = get_user_by_id(session["user_id"])
+    if user_row is None:
+        session.clear()
+        return redirect(url_for("login"))
+
+    name = user_row["name"]
     initials = "".join(part[0].upper() for part in name.split()[:2])
+    member_since = datetime.strptime(
+        user_row["created_at"], "%Y-%m-%d %H:%M:%S"
+    ).strftime("%B %Y")
+
+    stats_row   = get_expense_stats(session["user_id"])
+    top_cat     = get_top_category(session["user_id"])
+    recent_rows = get_recent_expenses(session["user_id"], limit=5)
+    cat_rows    = get_category_totals(session["user_id"])
+
+    total_spent = stats_row["total_spent"]
+
     user = {
-        "name": name,
-        "email": "priya@example.com",
-        "initials": initials,
-        "member_since": "January 2024"
+        "initials":     initials,
+        "name":         name,
+        "email":        user_row["email"],
+        "member_since": member_since,
     }
     stats = {
-        "total_spent": "₹24,850",
-        "transactions": 47,
-        "top_category": "Food & Dining"
+        "total_spent":  f"₹{total_spent:,.2f}",
+        "transactions": stats_row["transaction_count"],
+        "top_category": top_cat,
     }
-    transactions = [
-        {"date": "Apr 28, 2026", "description": "Swiggy Order",         "category": "Food & Dining",  "amount": "−₹420",   "type": "expense"},
-        {"date": "Apr 26, 2026", "description": "Metro Card Recharge",  "category": "Transport",       "amount": "−₹200",   "type": "expense"},
-        {"date": "Apr 25, 2026", "description": "Netflix Subscription", "category": "Entertainment",   "amount": "−₹649",   "type": "expense"},
-        {"date": "Apr 24, 2026", "description": "Electricity Bill",     "category": "Utilities",       "amount": "−₹1,340", "type": "expense"},
-        {"date": "Apr 22, 2026", "description": "Grocery Store",        "category": "Food & Dining",   "amount": "−₹870",   "type": "expense"},
-    ]
-    categories = [
-        {"name": "Food & Dining",  "amount": "₹8,240", "percent": 33},
-        {"name": "Utilities",      "amount": "₹5,180", "percent": 21},
-        {"name": "Transport",      "amount": "₹3,920", "percent": 16},
-        {"name": "Entertainment",  "amount": "₹3,260", "percent": 13},
-        {"name": "Shopping",       "amount": "₹4,250", "percent": 17},
-    ]
+    transactions = []
+    for row in recent_rows:
+        tx_date = datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d, %Y")
+        transactions.append({
+            "date":        tx_date,
+            "description": row["description"] or "",
+            "category":    row["category"],
+            "amount":      f"−₹{row['amount']:,.2f}",
+            "type":        "expense",
+        })
+
+    categories = []
+    for cat in cat_rows:
+        percent = round(cat["total"] / total_spent * 100) if total_spent > 0 else 0
+        categories.append({
+            "name":    cat["name"],
+            "amount":  f"₹{cat['total']:,.2f}",
+            "percent": percent,
+        })
+
     return render_template("profile.html", user=user, stats=stats,
                            transactions=transactions, categories=categories)
 
