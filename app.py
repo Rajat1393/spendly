@@ -20,6 +20,13 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
 
 
+def _months_ago(dt, n):
+    month = dt.month - n
+    year  = dt.year + (month - 1) // 12
+    month = ((month - 1) % 12) + 1
+    return dt.replace(year=year, month=month, day=1)
+
+
 # ------------------------------------------------------------------ #
 # Routes                                                              #
 # ------------------------------------------------------------------ #
@@ -103,16 +110,49 @@ def profile():
         session.clear()
         return redirect(url_for("login"))
 
+    # Parse and validate date filter params
+    date_from_raw = request.args.get("date_from", "").strip()
+    date_to_raw   = request.args.get("date_to",   "").strip()
+
+    date_from = None
+    date_to   = None
+
+    if date_from_raw:
+        try:
+            datetime.strptime(date_from_raw, "%Y-%m-%d")
+            date_from = date_from_raw
+        except ValueError:
+            pass
+
+    if date_to_raw:
+        try:
+            datetime.strptime(date_to_raw, "%Y-%m-%d")
+            date_to = date_to_raw
+        except ValueError:
+            pass
+
+    if date_from and date_to and date_from > date_to:
+        flash("Start date must be before end date.", "error")
+        date_from = None
+        date_to   = None
+
+    # Preset boundary strings passed to template for filter bar rendering
+    today_dt           = datetime.today()
+    today_str          = today_dt.strftime("%Y-%m-%d")
+    first_of_month     = today_dt.replace(day=1).strftime("%Y-%m-%d")
+    three_months_start = _months_ago(today_dt, 3).strftime("%Y-%m-%d")
+    six_months_start   = _months_ago(today_dt, 6).strftime("%Y-%m-%d")
+
     name = user_row["name"]
     initials = "".join(part[0].upper() for part in name.split()[:2])
     member_since = datetime.strptime(
         user_row["created_at"], "%Y-%m-%d %H:%M:%S"
     ).strftime("%B %Y")
 
-    stats_row   = get_expense_stats(session["user_id"])
-    top_cat     = get_top_category(session["user_id"])
-    recent_rows = get_recent_expenses(session["user_id"], limit=5)
-    cat_rows    = get_category_totals(session["user_id"])
+    stats_row   = get_expense_stats(session["user_id"], date_from=date_from, date_to=date_to)
+    top_cat     = get_top_category(session["user_id"], date_from=date_from, date_to=date_to)
+    recent_rows = get_recent_expenses(session["user_id"], limit=5, date_from=date_from, date_to=date_to)
+    cat_rows    = get_category_totals(session["user_id"], date_from=date_from, date_to=date_to)
 
     total_spent = stats_row["total_spent"]
 
@@ -147,8 +187,19 @@ def profile():
             "percent": percent,
         })
 
-    return render_template("profile.html", user=user, stats=stats,
-                           transactions=transactions, categories=categories)
+    return render_template(
+        "profile.html",
+        user=user,
+        stats=stats,
+        transactions=transactions,
+        categories=categories,
+        date_from=date_from,
+        date_to=date_to,
+        today_str=today_str,
+        first_of_month=first_of_month,
+        three_months_start=three_months_start,
+        six_months_start=six_months_start,
+    )
 
 
 @app.route("/expenses/add")
