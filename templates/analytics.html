@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics — Spendly{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/analytics.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="analytics-page">
+    <div class="analytics-inner">
+
+        <div class="coming-soon-card">
+
+            <div class="coming-soon-icon-wrap">
+                <i data-lucide="bar-chart-2" class="coming-soon-icon"></i>
+            </div>
+
+            <div class="coming-soon-badge">
+                <span class="coming-soon-badge-dot"></span>
+                In Development
+            </div>
+
+            <h1 class="coming-soon-title">Analytics</h1>
+            <p class="coming-soon-subtitle">
+                Deep insights into your spending are on the way.
+                Track trends, compare months, and understand exactly where your money goes.
+            </p>
+
+        </div>
+
+        <div class="coming-soon-features">
+
+            <div class="csf-card">
+                <div class="csf-icon-wrap">
+                    <i data-lucide="trending-up" class="csf-icon"></i>
+                </div>
+                <div class="csf-body">
+                    <h3 class="csf-title">Spending Trends</h3>
+                    <p class="csf-desc">Month-over-month charts that show how your habits are changing over time.</p>
+                </div>
+            </div>
+
+            <div class="csf-card">
+                <div class="csf-icon-wrap csf-icon-wrap--gold">
+                    <i data-lucide="pie-chart" class="csf-icon csf-icon--gold"></i>
+                </div>
+                <div class="csf-body">
+                    <h3 class="csf-title">Category Breakdown</h3>
+                    <p class="csf-desc">Visual breakdowns of every category so you always know where your budget goes.</p>
+                </div>
+            </div>
+
+            <div class="csf-card">
+                <div class="csf-icon-wrap csf-icon-wrap--soft">
+                    <i data-lucide="calendar" class="csf-icon csf-icon--soft"></i>
+                </div>
+                <div class="csf-body">
+                    <h3 class="csf-title">Period Comparisons</h3>
+                    <p class="csf-desc">Compare any two date ranges side-by-side to spot seasonal patterns and outliers.</p>
+                </div>
+            </div>
+
+        </div>
+
+        <p class="coming-soon-back">
+            <a href="{{ url_for('profile') }}" class="btn-ghost">
+                <i data-lucide="arrow-left" style="width:14px;height:14px;vertical-align:middle;margin-right:6px;"></i>
+                Back to Profile
+            </a>
+        </p>
+
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>lucide.createIcons();</script>
+{% endblock %}
