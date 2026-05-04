@@ -320,6 +320,11 @@ a { color: inherit; text-decoration: none; }
 
 .btn-primary:hover { background: var(--accent); }
 
+.btn-sm {
+    padding: 0.4rem 1rem;
+    font-size: 0.82rem;
+}
+
 .btn-ghost {
     display: inline-block;
     background: transparent;

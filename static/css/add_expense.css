@@ -1,0 +1,145 @@
+.expense-form-page {
+    min-height: calc(100vh - 120px);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 16px;
+}
+
+.expense-form-card {
+    background: var(--paper-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.08);
+    padding: 40px 44px;
+    width: 100%;
+    max-width: 480px;
+}
+
+.expense-form-header {
+    margin-bottom: 32px;
+}
+
+.expense-form-title {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    color: var(--ink);
+    margin: 0 0 6px;
+}
+
+.expense-form-subtitle {
+    font-size: 0.9rem;
+    color: var(--ink-muted);
+    margin: 0;
+}
+
+.expense-form .form-group {
+    margin-bottom: 20px;
+}
+
+.expense-form .form-label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+}
+
+.expense-form .form-input,
+.expense-form .form-select,
+.expense-form .form-textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    box-sizing: border-box;
+}
+
+.expense-form .form-input:focus,
+.expense-form .form-select:focus,
+.expense-form .form-textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.expense-form .form-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b6b6b' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.expense-form .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-label-optional {
+    color: var(--ink-faint);
+    font-weight: 400;
+}
+
+.expense-form-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 28px;
+}
+
+.btn-submit {
+    flex: 1;
+    padding: 11px 20px;
+    background: var(--ink);
+    color: var(--paper-card);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.btn-submit:hover {
+    opacity: 0.85;
+}
+
+.btn-cancel {
+    padding: 11px 20px;
+    background: transparent;
+    color: var(--ink-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    text-decoration: none;
+    text-align: center;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-cancel:hover {
+    border-color: var(--ink-muted);
+    color: var(--ink-soft);
+}
+
+@media (max-width: 520px) {
+    .expense-form-card {
+        padding: 28px 20px;
+    }
+
+    .expense-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .btn-cancel {
+        width: 100%;
+    }
+}

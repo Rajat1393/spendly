@@ -136,6 +136,9 @@
 .profile-section-header {
     padding: 1.25rem 1.75rem;
     border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .profile-section-title {

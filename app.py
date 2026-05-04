@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from werkzeug.security import check_password_hash, generate_password_hash
 from database.db import (
+    create_expense,
     create_user,
     get_category_totals,
     get_db,
@@ -18,6 +19,8 @@ from database.db import (
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-in-production")
+
+EXPENSE_CATEGORIES = ["Food", "Transport", "Bills", "Health", "Entertainment", "Shopping", "Other"]
 
 
 def _months_ago(dt, n):
@@ -209,9 +212,60 @@ def analytics():
     return render_template("analytics.html")
 
 
-@app.route("/expenses/add")
+@app.route("/expenses/add", methods=["GET", "POST"])
 def add_expense():
-    return "Add expense — coming in Step 7"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        amount_raw = request.form.get("amount", "").strip()
+        category   = request.form.get("category", "").strip()
+        date_raw   = request.form.get("date", "").strip()
+        desc_raw   = request.form.get("description", "").strip()
+
+        error = None
+        amount = None
+
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                raise ValueError
+        except ValueError:
+            error = "Amount must be a positive number."
+
+        if not error and category not in EXPENSE_CATEGORIES:
+            error = "Please select a valid category."
+
+        if not error:
+            try:
+                datetime.strptime(date_raw, "%Y-%m-%d")
+            except ValueError:
+                error = "Please enter a valid date."
+
+        if not error and len(desc_raw) > 200:
+            error = "Description must be 200 characters or fewer."
+
+        if error:
+            flash(error, "error")
+            form_values = {
+                "amount":      amount_raw,
+                "category":    category,
+                "date":        date_raw,
+                "description": desc_raw,
+            }
+            return render_template("add_expense.html", categories=EXPENSE_CATEGORIES, form=form_values)
+
+        description = desc_raw or None
+        create_expense(session["user_id"], amount, category, date_raw, description)
+        flash("Expense added.", "success")
+        return redirect(url_for("profile"))
+
+    today = datetime.today().strftime("%Y-%m-%d")
+    return render_template(
+        "add_expense.html",
+        categories=EXPENSE_CATEGORIES,
+        form={"date": today},
+    )
 
 
 @app.route("/expenses/<int:id>/edit")
@@ -228,4 +282,4 @@ if __name__ == "__main__":
     with app.app_context():
         init_db()
         seed_db()
-    app.run(debug=True, port=5001)
+    app.run(debug=os.environ.get("FLASK_DEBUG", "false").lower() == "true", port=5001)
