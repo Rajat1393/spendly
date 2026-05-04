@@ -74,6 +74,17 @@ def seed_db():
     conn.close()
 
 
+def create_expense(user_id, amount, category, date, description):
+    conn = get_db()
+    cursor = conn.execute(
+        "INSERT INTO expenses (user_id, amount, category, date, description) VALUES (?, ?, ?, ?, ?)",
+        (user_id, amount, category, date, description),
+    )
+    conn.commit()
+    conn.close()
+    return cursor.lastrowid
+
+
 def create_user(name, email, password_hash):
     conn = get_db()
     conn.execute(
