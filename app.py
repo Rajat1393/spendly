@@ -8,6 +8,7 @@ from database.db import (
     create_user,
     get_category_totals,
     get_db,
+    get_expense_by_id,
     get_expense_stats,
     get_recent_expenses,
     get_top_category,
@@ -15,6 +16,7 @@ from database.db import (
     get_user_by_id,
     init_db,
     seed_db,
+    update_expense,
 )
 
 app = Flask(__name__)
@@ -174,6 +176,7 @@ def profile():
     for row in recent_rows:
         tx_date = datetime.strptime(row["date"], "%Y-%m-%d").strftime("%b %d, %Y")
         transactions.append({
+            "id":          row["id"],
             "date":        tx_date,
             "description": row["description"] or "",
             "category":    row["category"],
@@ -268,9 +271,69 @@ def add_expense():
     )
 
 
-@app.route("/expenses/<int:id>/edit")
+@app.route("/expenses/<int:id>/edit", methods=["GET", "POST"])
 def edit_expense(id):
-    return "Edit expense — coming in Step 8"
+    if not session.get("user_id"):
+        return redirect(url_for("login"))
+
+    expense = get_expense_by_id(id)
+    if expense is None:
+        abort(404)
+    if expense["user_id"] != session["user_id"]:
+        abort(403)
+
+    if request.method == "POST":
+        amount_raw = request.form.get("amount", "").strip()
+        category   = request.form.get("category", "").strip()
+        date_raw   = request.form.get("date", "").strip()
+        desc_raw   = request.form.get("description", "").strip()
+
+        error = None
+        amount = None
+
+        try:
+            amount = float(amount_raw)
+            if amount <= 0:
+                raise ValueError
+        except ValueError:
+            error = "Amount must be a positive number."
+
+        if not error and category not in EXPENSE_CATEGORIES:
+            error = "Please select a valid category."
+
+        if not error:
+            try:
+                datetime.strptime(date_raw, "%Y-%m-%d")
+            except ValueError:
+                error = "Please enter a valid date."
+
+        if not error and len(desc_raw) > 200:
+            error = "Description must be 200 characters or fewer."
+
+        if error:
+            flash(error, "error")
+            form_values = {
+                "amount":      amount_raw,
+                "category":    category,
+                "date":        date_raw,
+                "description": desc_raw,
+            }
+            return render_template("edit_expense.html", expense=expense,
+                                   categories=EXPENSE_CATEGORIES, form=form_values)
+
+        description = desc_raw or None
+        update_expense(id, amount, category, date_raw, description)
+        flash("Expense updated.", "success")
+        return redirect(url_for("profile"))
+
+    form_values = {
+        "amount":      expense["amount"],
+        "category":    expense["category"],
+        "date":        expense["date"],
+        "description": expense["description"] or "",
+    }
+    return render_template("edit_expense.html", expense=expense,
+                           categories=EXPENSE_CATEGORIES, form=form_values)
 
 
 @app.route("/expenses/<int:id>/delete")
